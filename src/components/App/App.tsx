@@ -1,15 +1,10 @@
 import { useState } from "react";
 
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  keepPreviousData,
-} from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 import { useDebouncedCallback } from "use-debounce";
 
-import { fetchNotes, deleteNote, createNote } from "../../services/noteService";
+import { fetchNotes } from "../../services/noteService";
 
 import SearchBox from "../SearchBox/SearchBox";
 import Pagination from "../Pagination/Pagination";
@@ -48,28 +43,6 @@ export default function App() {
     debouncedSearch(value);
   };
 
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      setPage(1);
-      setIsModalOpen(false);
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
-  };
-
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
@@ -83,31 +56,24 @@ export default function App() {
           />
         )}
 
-       
-<button
-  type="button"
-  className={css.button}
-  onClick={() => setIsModalOpen(true)}
->
-  Create note +
-</button>
-
+        <button
+          type="button"
+          className={css.button}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Create note +
+        </button>
       </header>
 
       {isPending && <p>Loading notes...</p>}
 
       {isError && <p>Failed to load notes.</p>}
 
-      {data && data.notes.length > 0 && (
-        <NoteList notes={data.notes} onDelete={handleDelete} />
-      )}
+      {data && data.notes.length > 0 && <NoteList notes={data.notes} />}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm
-            onSubmit={(values) => createMutation.mutate(values)}
-            onCancel={() => setIsModalOpen(false)}
-          />
+          <NoteForm onCancel={() => setIsModalOpen(false)} />
         </Modal>
       )}
     </div>
